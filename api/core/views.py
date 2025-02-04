@@ -3,24 +3,30 @@ from rest_framework import viewsets, permissions, pagination, generics, filters
 from rest_framework.views import APIView
 from taggit.models import Tag
 
-from .serializers import PostSerializer, TagSerializer, ContactSerailizer, RegisterSerializer, UserSerializer, \
-    CommentSerializer
+from .serializers import (
+    PostSerializer,
+    TagSerializer,
+    ContactSerailizer,
+    RegisterSerializer,
+    UserSerializer,
+    CommentSerializer,
+)
 from .models import Post, Comment
 from rest_framework.response import Response
 
 
 class PageNumberSetPagination(pagination.PageNumberPagination):
     page_size = 6
-    page_size_query_param = 'page_size'
-    ordering = 'created_at'
+    page_size_query_param = "page_size"
+    ordering = "created_at"
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    search_fields = ['content', 'h1']
+    search_fields = ["content", "h1"]
     filter_backends = (filters.SearchFilter,)
     serializer_class = PostSerializer
     queryset = Post.objects.all()
-    lookup_field = 'slug'
+    lookup_field = "slug"
     permission_classes = [permissions.AllowAny]
     pagination_class = PageNumberSetPagination
 
@@ -31,7 +37,7 @@ class TagDetailView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        tag_slug = self.kwargs['tag_slug'].lower()
+        tag_slug = self.kwargs["tag_slug"].lower()
         tag = Tag.objects.get(slug=tag_slug)
         return Post.objects.filter(tags=tag)
 
@@ -43,7 +49,7 @@ class TagView(generics.ListAPIView):
 
 
 class AsideView(generics.ListAPIView):
-    queryset = Post.objects.all().order_by('-id')[:5]
+    queryset = Post.objects.all().order_by("-id")[:5]
     serializer_class = PostSerializer
     permission_classes = [permissions.AllowAny]
 
@@ -52,15 +58,21 @@ class FeedBackView(APIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = ContactSerailizer
 
-    def post(self, request, *args, **kwargs):  # метод post, потому что наша апишка будет принимать данные только на вход.
-        serializer_class = ContactSerailizer(data=request.data)  # в переменную serializer_class мы сохраним данные которые нам пришли с фронта
+    def post(
+        self, request, *args, **kwargs
+    ):  # метод post, потому что наша апишка будет принимать данные только на вход.
+        serializer_class = ContactSerailizer(
+            data=request.data
+        )  # в переменную serializer_class мы сохраним данные которые нам пришли с фронта
         if serializer_class.is_valid():
             data = serializer_class.validated_data
-            name = data.get('name')
-            from_email = data.get('email')
-            subject = data.get('subject')
-            message = data.get('message')
-            send_mail(f'От {name} | {subject}', message, from_email, ['somebody@gmail.com'])
+            name = data.get("name")
+            from_email = data.get("email")
+            subject = data.get("subject")
+            message = data.get("message")
+            send_mail(
+                f"От {name} | {subject}", message, from_email, ["somebody@gmail.com"]
+            )
             return Response({"success": "Sent"})
 
 
@@ -68,14 +80,18 @@ class RegisterView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = RegisterSerializer
 
-    def post(self, request, *args,  **kwargs):
+    def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        return Response({
-            "user": UserSerializer(user, context=self.get_serializer_context()).data,
-            "message": "Пользователь успешно создан",
-        })
+        return Response(
+            {
+                "user": UserSerializer(
+                    user, context=self.get_serializer_context()
+                ).data,
+                "message": "Пользователь успешно создан",
+            }
+        )
 
 
 class ProfileView(generics.GenericAPIView):
@@ -83,17 +99,27 @@ class ProfileView(generics.GenericAPIView):
     serializer_class = UserSerializer
 
     def get(self, request, *args, **kwargs):
-        return Response({
-            "user": UserSerializer(request.user, context=self.get_serializer_context()).data,
-        })
+        return Response(
+            {
+                "user": UserSerializer(
+                    request.user, context=self.get_serializer_context()
+                ).data,
+            }
+        )
 
 
-class CommentView(generics.ListCreateAPIView):
+class AddCommentView(generics.CreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+
+class GetCommentsView(generics.ListAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.AllowAny]
+
     def get_queryset(self):
-        post_slug = self.kwargs['post_slug'].lower()
+        post_slug = self.kwargs["post_slug"].lower()
         post = Post.objects.get(slug=post_slug)
         return Comment.objects.filter(post=post)
