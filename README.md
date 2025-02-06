@@ -74,6 +74,14 @@ python manage.py runserver
 │── README.md
 ```
 
+## Развертывание
+
+Для развертывания на продакшн выполните следующие шаги:
+
+1. Настройте файл `settings.py` (отключите `DEBUG`, настройте базу данных и `ALLOWED_HOSTS`).
+2. Настройте статические файлы (`collectstatic`).
+3. Настройте сервер (Gunicorn, Nginx, Docker и т. д.).
+
 ## Дополнительная информация
 - [Django](https://www.djangoproject.com/)
 - [Django REST Framework](https://www.django-rest-framework.org/)
